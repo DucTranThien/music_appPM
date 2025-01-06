@@ -5,31 +5,20 @@ import 'package:music_app/data/model/song.dart';
 import 'package:music_app/ui/now_playing/playing.dart';
 import 'package:music_app/ui/home/viewmodel.dart';
 import 'package:music_app/ui/settings/settings.dart';
-import 'package:music_app/ui/home/theme_manager.dart';
-import 'package:music_app/ui/now_playing/miniplayer.dart';
-
-import '../now_playing/audio_player_manager.dart';
 
 class MusicApp extends StatelessWidget {
   const MusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeManager.isDarkMode,
-      builder: (context, isDarkMode, child) {
-        return MaterialApp(
-          title: 'Music PM',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData.dark(),
-          themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: const MusicHomePage(),
-          debugShowCheckedModeBanner: false,
-        );
-      },
+    return MaterialApp(
+      title: 'Music PM',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const MusicHomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -42,30 +31,10 @@ class MusicHomePage extends StatefulWidget {
 }
 
 class _MusicHomePageState extends State<MusicHomePage> {
-  bool _isDarkMode = false;
   final List<Widget> _tabs = [
     const HomeTab(),
     const SettingsTab(),
   ];
-
-  bool _showMiniPlayer = false;
-  Song? _currentSong;
-  bool _isPlaying = false;
-  late AudioPlayerManager _audioPlayerManager;
-  late int _selectedItemIndex;
-  late List<Song> _songs;
-
-  @override
-  void initState() {
-    super.initState();
-    _audioPlayerManager = AudioPlayerManager();
-    _songs = [];  // Khởi tạo danh sách bài hát
-
-    // Nếu bạn đã có danh sách bài hát từ trước, hãy tải chúng vào _songs
-    // _songs = loadSongs();  // Ví dụ: loadSongs() là hàm trả về danh sách bài hát
-
-    _selectedItemIndex = 0;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,97 +42,22 @@ class _MusicHomePageState extends State<MusicHomePage> {
       navigationBar: const CupertinoNavigationBar(
         middle: Text('Music PM'),
       ),
-      child: Stack(
-        children: [
-          CupertinoTabScaffold(
-            tabBar: CupertinoTabBar(
-              backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
-              ],
-            ),
-            tabBuilder: (BuildContext context, int index) {
-              return _tabs[index];
-            },
-          ),
-          if (_showMiniPlayer && _currentSong != null)
-            Positioned(
-              bottom: 0, // Đặt MiniPlayer ở cuối màn hình
-              left: 0,
-              right: 0,
-              child: MiniPlayer(
-                song: _currentSong!,
-                onDismiss: () {
-                  setState(() {
-                    _showMiniPlayer = false;
-                  });
-                },
-                onPlayPause: _togglePlayPause,
-                onNext: _playNextSong,
-                onPrevious: _playPreviousSong,
-                isPlaying: _isPlaying,
-              ),
-            ),
-        ],
+      child: CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+          backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
+          ],
+        ),
+        tabBuilder: (BuildContext context, int index) {
+          return _tabs[index];
+        },
       ),
     );
   }
-
-  void showMiniPlayer(Song song) {
-    setState(() {
-      _showMiniPlayer = true;
-      _currentSong = song;
-    });
-  }
-
-  void _togglePlayPause() {
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-    if (_isPlaying) {
-      _audioPlayerManager.player.play();
-    } else {
-      _audioPlayerManager.player.pause();
-    }
-  }
-
-  void _playNextSong() {
-    _audioPlayerManager.player.stop();
-    if (_selectedItemIndex < _songs.length - 1) {
-      _selectedItemIndex++;
-    } else {
-      _selectedItemIndex = 0;  // Quay lại bài hát đầu tiên nếu đang ở bài hát cuối cùng
-    }
-    final nextSong = _songs[_selectedItemIndex];
-    _audioPlayerManager.updateSongUrl(nextSong.source);
-    _audioPlayerManager.prepare(isNewSong: true).then((_) {
-      _audioPlayerManager.player.play();
-      setState(() {
-        _currentSong = nextSong;
-        _isPlaying = true;
-      });
-    });
-  }
-
-  void _playPreviousSong() {
-    _audioPlayerManager.player.stop();
-    if (_selectedItemIndex > 0) {
-      _selectedItemIndex--;
-    } else {
-      _selectedItemIndex = _songs.length - 1;  // Quay lại bài hát cuối cùng nếu đang ở bài hát đầu tiên
-    }
-    final prevSong = _songs[_selectedItemIndex];
-    _audioPlayerManager.updateSongUrl(prevSong.source);
-    _audioPlayerManager.prepare(isNewSong: true).then((_) {
-      _audioPlayerManager.player.play();
-      setState(() {
-        _currentSong = prevSong;
-        _isPlaying = true;
-      });
-    });
-  }
 }
+
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
@@ -217,6 +111,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
     _scrollController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -240,9 +135,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
           Expanded(child: getBody()),
         ],
       ),
-
     );
-
   }
 
   Widget _buildHitSongCarousel() {
@@ -350,7 +243,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
     }
   }
 
-
   Widget getProgressBar() {
     return const Center(child: CircularProgressIndicator());
   }
@@ -411,10 +303,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
   }
 
   void navigate(Song song) {
-    Navigator.push(context, CupertinoPageRoute(builder: (context) => NowPlaying(songs: songs, playingSong: song)))
-        .then((_) {
-      // Khi quay về trang chủ, gọi hàm showMiniPlayer
-      (context as Element).findAncestorStateOfType<_MusicHomePageState>()?.showMiniPlayer(song);
-    });
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => NowPlaying(songs: songs, playingSong: song)));
   }
 }
