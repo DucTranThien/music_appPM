@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:music_app/ui/home/theme_manager.dart';
 class SettingsTab extends StatefulWidget {
   const SettingsTab({super.key});
 
@@ -8,59 +8,57 @@ class SettingsTab extends StatefulWidget {
 }
 
 class _SettingsTabState extends State<SettingsTab> {
-  bool _isDarkMode = false;
-
-  // Hàm thay đổi chế độ sáng tối
-  void _toggleTheme(bool value) {
-    setState(() {
-      _isDarkMode = value;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cài đặt'),
-        backgroundColor: Colors.grey,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Tiêu đề và chế độ sáng tối
-            const Text(
-              'Chế độ hiển thị',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            SwitchListTile(
-              title: const Text('Chế độ tối'),
-              value: _isDarkMode,
-              onChanged: _toggleTheme,
-              secondary: const Icon(Icons.dark_mode),
-            ),
-            const Divider(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeManager.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Cài đặt'),
+            backgroundColor: Colors.grey,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tiêu đề và chế độ sáng tối
+                const Text(
+                  'Chế độ hiển thị',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                SwitchListTile(
+                  title: const Text('Chế độ tối'),
+                  value: isDarkMode,
+                  onChanged: (value) {
+                    ThemeManager.toggleTheme(value); // Cập nhật trạng thái
+                  },
+                  secondary: const Icon(Icons.dark_mode),
+                ),
+                const Divider(),
 
-            // Thông tin ứng dụng
-            const SizedBox(height: 20),
-            const Text(
-              'Thông tin ứng dụng',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                // Thông tin ứng dụng
+                const SizedBox(height: 20),
+                const Text(
+                  'Thông tin ứng dụng',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                ListTile(
+                  leading: const Icon(Icons.info_outline, color: Colors.blue),
+                  title: const Text('Music PM'),
+                  subtitle: const Text('Ứng dụng nghe nhạc thuộc nhóm PM'),
+                  onTap: () {
+                    _showAppInfoDialog(context);
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            ListTile(
-              leading: const Icon(Icons.info_outline, color: Colors.blue),
-              title: const Text('Music PM'),
-              subtitle: const Text('Ứng dụng nghe nhạc thuộc nhóm PM'),
-              onTap: () {
-                _showAppInfoDialog(context);
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -71,7 +69,9 @@ class _SettingsTabState extends State<SettingsTab> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Thông tin ứng dụng'),
-          content: const Text('Ứng dụng Music PM được phát triển bởi nhóm PM. Đây là ứng dụng giúp bạn nghe nhạc một cách dễ dàng và thuận tiện.'),
+          content: const Text(
+            'Ứng dụng Music PM được phát triển bởi nhóm PM. Đây là ứng dụng giúp bạn nghe nhạc một cách dễ dàng và thuận tiện.',
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('Đóng'),
